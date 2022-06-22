@@ -65,7 +65,6 @@ int direcao_corda;
 
 void posicao_tela(int X, int Y)
 {
-
     COORD coord = {X, Y};
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleCursorPosition(h, coord);
@@ -135,7 +134,6 @@ void controle_corda()
 
     if (direcao_corda == DIREITA && cont % 3 == 0)
     {
-
         apagar_corda();
 
         seguimento.um.x += 3;
@@ -202,12 +200,7 @@ void construir_mapa()
 
 void construir_player()
 {
-    if (direcao == DIREITA)
-        jogo.mapa[heroi.y - 2][heroi.x] = '>';
-    else if (direcao == ESQUERDA)
-        jogo.mapa[heroi.y - 2][heroi.x] = '<';
-    else
-        jogo.mapa[heroi.y - 2][heroi.x] = '@';
+    jogo.mapa[heroi.y - 2][heroi.x] = '@';
     jogo.mapa[heroi.y - 1][heroi.x - 1] = '/';
     jogo.mapa[heroi.y - 1][heroi.x + 1] = '\\';
     jogo.mapa[heroi.y - 1][heroi.x] = 'I';
@@ -227,7 +220,6 @@ void apagar_player()
 
 void imprimir_mapa()
 {
-
     construir_player();
     construir_corda();
     for (int i = 0; i < ALTURA; i++)
@@ -284,102 +276,102 @@ void controle()
     switch (comando)
     {
 
-    case -32: // VALOR QUE TODA SETA RETORNA E DEVE SER DESPREZADO
-        break;
+        case -32: // VALOR QUE TODA SETA RETORNA E DEVE SER DESPREZADO
+            break;
 
-    case CIMA:
-        if (jogo.mapa[heroi.y - 1][heroi.x] == 'H')
-            heroi.y -= 1;
-        direcao = CIMA;
-        break;
+        case CIMA:
+            if (jogo.mapa[heroi.y - 1][heroi.x] == 'H')
+                heroi.y -= 1;
+            direcao = CIMA;
+            break;
 
-    case BAIXO:
-        if (jogo.mapa[heroi.y + 1][heroi.x] == 'H')
-            heroi.y += 1;
+        case BAIXO:
+            if (jogo.mapa[heroi.y + 1][heroi.x] == 'H')
+                heroi.y += 1;
 
-        break;
+            break;
 
-    case ESQUERDA:
-        controle_esquerda();
-        direcao = ESQUERDA;
-        break;
+        case ESQUERDA:
+            controle_esquerda();
+            direcao = ESQUERDA;
+            break;
 
-    case DIREITA: // direita
-        controle_direita();
-        direcao = DIREITA;
-        break;
+        case DIREITA: // direita
+            controle_direita();
+            direcao = DIREITA;
+            break;
 
-    case ' ':
-        if (jogo.mapa[heroi.y - 1][heroi.x] != '=' || jogo.mapa[heroi.y + 1][heroi.x] != ' ')
-        {
-            heroi.y -= 1;
-            controle_queda();
-            if (direcao == DIREITA)
+        case ' ':
+            if (jogo.mapa[heroi.y - 1][heroi.x] != '=' || jogo.mapa[heroi.y + 1][heroi.x] != ' ')
             {
-                controle_direita();
+                heroi.y -= 1;
                 controle_queda();
-                if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
+                if (direcao == DIREITA)
                 {
-                    heroi.y -= 1;
-
-                    controle_queda();
                     controle_direita();
                     controle_queda();
-                    if (jogo.mapa[heroi.y + 1][heroi.x] != '=')
+                    if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
                     {
-                        heroi.y += 1;
+                        heroi.y -= 1;
 
                         controle_queda();
                         controle_direita();
                         controle_queda();
+                        if (jogo.mapa[heroi.y + 1][heroi.x] != '=')
+                        {
+                            heroi.y += 1;
+
+                            controle_queda();
+                            controle_direita();
+                            controle_queda();
+                        }
                     }
                 }
-            }
-            else if (direcao == ESQUERDA)
-            {
-                controle_esquerda();
-                controle_queda();
-                if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
+                else if (direcao == ESQUERDA)
                 {
-                    heroi.y -= 1;
-
-                    controle_queda();
                     controle_esquerda();
                     controle_queda();
                     if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
                     {
-                        heroi.y += 1;
+                        heroi.y -= 1;
 
                         controle_queda();
                         controle_esquerda();
                         controle_queda();
+                        if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
+                        {
+                            heroi.y += 1;
+
+                            controle_queda();
+                            controle_esquerda();
+                            controle_queda();
+                        }
                     }
                 }
-            }
-            else if (direcao == CIMA)
-            {
-                controle_queda();
-                heroi.y -= 1;
-                controle_queda();
-                heroi.y += 1;
-                controle_queda();
+                else if (direcao == CIMA)
+                {
+                    controle_queda();
+                    heroi.y -= 1;
+                    controle_queda();
+                    heroi.y += 1;
+                    controle_queda();
+                }
+
+                if (jogo.mapa[heroi.y + 1][heroi.x] != '=')
+                {
+                    heroi.y += 1;
+                }
             }
 
-            if (jogo.mapa[heroi.y + 1][heroi.x] != '=')
-            {
-                heroi.y += 1;
-            }
-        }
+            break;
 
-        break;
-
-    default:
-        posicao_tela(ALTURA + 2, (ALTURA / 2));
-        printf("JOGO PAUSADO");
-        posicao_tela(ALTURA - 8, ((ALTURA / 2) + 2));
-        printf("ESCOLHA UMA DIRECAO PARA RETORNAR");
-        getch();
-        break;
+        default:
+            posicao_tela(ALTURA + 2, (ALTURA / 2));
+            printf("JOGO PAUSADO");
+            posicao_tela(ALTURA - 8, ((ALTURA / 2) + 2));
+            printf("ESCOLHA UMA DIRECAO PARA RETORNAR");
+            getch();
+            break;
     }
 }
 
@@ -408,9 +400,8 @@ void obstaculo()
     }
 }
 
-void main()
+void iniciar()
 {
-
     system("mode con:cols=55 lines=40");
     setlocale(LC_ALL, "");
     srand(time(NULL));
@@ -418,64 +409,74 @@ void main()
     construir_mapa();
     // obstaculo();
 
-    for (;;)
+    heroi.x = ALTURA / 2;
+    heroi.y = ALTURA - 2;
+    direcao = CIMA;
+
+    seguimento.um.x = LARGURA / 2;
+    seguimento.um.y = ALTURA_CORDA;
+
+    seguimento.dois.x = LARGURA / 2;
+    seguimento.dois.y = ALTURA_CORDA - 1;
+
+    seguimento.tres.x = LARGURA / 2;
+    seguimento.tres.y = ALTURA_CORDA - 2;
+
+    seguimento.quatro.x = LARGURA / 2;
+    seguimento.quatro.y = ALTURA_CORDA - 3;
+
+    seguimento.cinco.x = LARGURA / 2;
+    seguimento.cinco.y = ALTURA_CORDA - 4;
+
+    seguimento.seis.x = LARGURA / 2;
+    seguimento.seis.y = ALTURA_CORDA - 5;
+
+    seguimento.sete.x = LARGURA / 2;
+    seguimento.sete.y = ALTURA_CORDA - 6;
+
+    seguimento.oito.x = LARGURA / 2;
+    seguimento.oito.y = ALTURA_CORDA - 7;
+
+    seguimento.nove.x = LARGURA / 2;
+    seguimento.nove.y = ALTURA_CORDA - 8;
+
+    seguimento.dez.x = LARGURA / 2;
+    seguimento.dez.y = ALTURA_CORDA - 9;
+
+    direcao_corda = DIREITA;
+}
+
+void gameplay()
+{
+    imprimir_mapa();
+    delay();
+
+    if (kbhit())
     {
-        heroi.x = ALTURA / 2;
-        heroi.y = ALTURA - 2;
+        comando = getch();
+        apagar_player();
+        controle();
+    }
+    else
         direcao = CIMA;
 
-        seguimento.um.x = LARGURA / 2;
-        seguimento.um.y = ALTURA_CORDA;
+    if (jogo.mapa[heroi.y + 1][heroi.x] == ' '
+        && jogo.mapa[heroi.y + 1][heroi.x + 1] == ' '
+        && jogo.mapa[heroi.y + 1][heroi.x - 1] == ' ')
+    {
+        apagar_player();
+        heroi.y += 1;
+        controle_queda();
+    }
+    controle_corda();
+}
 
-        seguimento.dois.x = LARGURA / 2;
-        seguimento.dois.y = ALTURA_CORDA - 1;
+void main()
+{
+    iniciar();
 
-        seguimento.tres.x = LARGURA / 2;
-        seguimento.tres.y = ALTURA_CORDA - 2;
-
-        seguimento.quatro.x = LARGURA / 2;
-        seguimento.quatro.y = ALTURA_CORDA - 3;
-
-        seguimento.cinco.x = LARGURA / 2;
-        seguimento.cinco.y = ALTURA_CORDA - 4;
-
-        seguimento.seis.x = LARGURA / 2;
-        seguimento.seis.y = ALTURA_CORDA - 5;
-
-        seguimento.sete.x = LARGURA / 2;
-        seguimento.sete.y = ALTURA_CORDA - 6;
-
-        seguimento.oito.x = LARGURA / 2;
-        seguimento.oito.y = ALTURA_CORDA - 7;
-
-        seguimento.nove.x = LARGURA / 2;
-        seguimento.nove.y = ALTURA_CORDA - 8;
-
-        seguimento.dez.x = LARGURA / 2;
-        seguimento.dez.y = ALTURA_CORDA - 9;
-
-        direcao_corda = DIREITA;
-
-        for (;;)
-        {
-
-            imprimir_mapa();
-            delay();
-            cont++;
-            if (kbhit())
-            {
-                comando = getch();
-                apagar_player();
-                controle();
-            }
-
-            if (jogo.mapa[heroi.y + 1][heroi.x] == ' ' && jogo.mapa[heroi.y + 1][heroi.x + 1] == ' ' && jogo.mapa[heroi.y + 1][heroi.x - 1] == ' ')
-            {
-                apagar_player();
-                heroi.y += 1;
-                controle_queda();
-            }
-            controle_corda();
-        }
+    for (;;cont++)
+    {
+        gameplay();
     }
 }
