@@ -7,6 +7,7 @@
 #include <time.h>
 #include <windows.h>
 #include <locale.h>
+#include <stdbool.h>
 
 enum sentido
 {
@@ -58,10 +59,11 @@ variavel heroi, jogo;
 
 int direcao;
 char comando;
-int pontos;
+int pontos =0;
 int vida = 3;
 int cont = 0;
 int direcao_corda;
+bool fim_de_jogo = false;
 
 void posicao_tela(int X, int Y)
 {
@@ -97,8 +99,7 @@ void delay()
     tempo = 20;
 
     clock_t goal = tempo + clock();
-    while (goal > clock())
-        ;
+    while (goal > clock());
 }
 
 void construir_corda()
@@ -222,7 +223,11 @@ void imprimir_mapa()
 {
     construir_player();
     construir_corda();
-    for (int i = 0; i < ALTURA; i++)
+
+    posicao_tela(1, 1);
+    printf("\n \n              PONTUACAO: %i",pontos);
+    printf("\n              VIDAS: %i",vida);
+    for (int i = 9; i < ALTURA; i++)
     {
         posicao_tela(1, i);
         for (int j = 0; j < LARGURA; j++)
@@ -230,11 +235,15 @@ void imprimir_mapa()
             printf(" %c", jogo.mapa[i][j + jogo.aux]);
         }
     }
+
 }
 
 void controle_direita()
 {
-    if (heroi.x + 1 != LARGURA && jogo.mapa[heroi.y][heroi.x + 2] == ' ')
+    if (heroi.x + 1 != LARGURA
+        && jogo.mapa[heroi.y][heroi.x + 2] == ' '
+        && jogo.mapa[heroi.y-1][heroi.x + 2] == ' '
+        && jogo.mapa[heroi.y-2][heroi.x + 2] == ' ')
     {
         if (heroi.x > (LARGURA - (ALTURA / 2)) || heroi.x < (ALTURA / 2))
         {
@@ -250,7 +259,10 @@ void controle_direita()
 
 void controle_esquerda()
 {
-    if (heroi.x - 1 != 0 && jogo.mapa[heroi.y][heroi.x - 2] == ' ')
+    if (heroi.x - 1 != 0
+        && jogo.mapa[heroi.y][heroi.x - 2] == ' '
+        && jogo.mapa[heroi.y-1][heroi.x - 2] == ' '
+        && jogo.mapa[heroi.y-2][heroi.x - 2] == ' ')
     {
         if (heroi.x < (ALTURA / 2) + 1 || heroi.x > (LARGURA - (ALTURA / 2) + 1))
         {
@@ -268,6 +280,91 @@ void controle_queda()
 {
     imprimir_mapa();
     apagar_player();
+}
+
+void controle_pulo()
+{
+    if (jogo.mapa[heroi.y - 3][heroi.x] != '=' || jogo.mapa[heroi.y + 1][heroi.x] != ' ')
+    {
+        heroi.y -= 1;
+        controle_queda();
+        if (direcao == DIREITA)
+        {
+            controle_direita();
+            controle_queda();
+            if (jogo.mapa[heroi.y - 1][heroi.x] != '='
+                && jogo.mapa[heroi.y - 1][heroi.x+1] != '='
+                && jogo.mapa[heroi.y - 1][heroi.x-1] != '=')
+            {
+                heroi.y -= 1;
+
+                controle_queda();
+                controle_direita();
+                controle_queda();
+                if (jogo.mapa[heroi.y + 1][heroi.x] != '='
+                    && jogo.mapa[heroi.y + 1][heroi.x+1] != '='
+                    && jogo.mapa[heroi.y + 1][heroi.x-1] != '=')
+                {
+                    heroi.y += 1;
+
+                    controle_queda();
+                    controle_direita();
+                    controle_queda();
+                }
+            }
+        }
+        else if (direcao == ESQUERDA)
+        {
+            controle_esquerda();
+            controle_queda();
+            if (jogo.mapa[heroi.y - 1][heroi.x] != '='
+                && jogo.mapa[heroi.y - 1][heroi.x+1] != '='
+                && jogo.mapa[heroi.y - 1][heroi.x-1] != '=')
+            {
+                heroi.y -= 1;
+
+                controle_queda();
+                controle_esquerda();
+                controle_queda();
+                if (jogo.mapa[heroi.y + 1][heroi.x] != '='
+                    && jogo.mapa[heroi.y + 1][heroi.x+1] != '='
+                    && jogo.mapa[heroi.y + 1][heroi.x-1] != '=')
+                {
+                    heroi.y += 1;
+
+                    controle_queda();
+                    controle_esquerda();
+                    controle_queda();
+                }
+            }
+        }
+        else if (direcao == CIMA)
+        {
+            controle_queda();
+            heroi.y -= 1;
+            controle_queda();
+            heroi.y += 1;
+            controle_queda();
+        }
+
+        if (jogo.mapa[heroi.y + 1][heroi.x] != '='
+        && jogo.mapa[heroi.y + 1][heroi.x+1] != '='
+        && jogo.mapa[heroi.y + 1][heroi.x-1] != '=')
+        {
+            heroi.y += 1;
+        }
+    }
+
+}
+
+
+void controle_reiniciar()
+{
+    vida--;
+    heroi.x = 1;
+    heroi.y = ALTURA - 2;
+    direcao = CIMA;
+    fim_de_jogo = false;
 }
 
 void controle()
@@ -296,73 +393,16 @@ void controle()
             direcao = ESQUERDA;
             break;
 
-        case DIREITA: // direita
+        case DIREITA:
             controle_direita();
             direcao = DIREITA;
             break;
 
         case ' ':
-            if (jogo.mapa[heroi.y - 1][heroi.x] != '=' || jogo.mapa[heroi.y + 1][heroi.x] != ' ')
-            {
-                heroi.y -= 1;
-                controle_queda();
-                if (direcao == DIREITA)
-                {
-                    controle_direita();
-                    controle_queda();
-                    if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
-                    {
-                        heroi.y -= 1;
+            controle_pulo();
 
-                        controle_queda();
-                        controle_direita();
-                        controle_queda();
-                        if (jogo.mapa[heroi.y + 1][heroi.x] != '=')
-                        {
-                            heroi.y += 1;
-
-                            controle_queda();
-                            controle_direita();
-                            controle_queda();
-                        }
-                    }
-                }
-                else if (direcao == ESQUERDA)
-                {
-                    controle_esquerda();
-                    controle_queda();
-                    if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
-                    {
-                        heroi.y -= 1;
-
-                        controle_queda();
-                        controle_esquerda();
-                        controle_queda();
-                        if (jogo.mapa[heroi.y - 1][heroi.x] != '=')
-                        {
-                            heroi.y += 1;
-
-                            controle_queda();
-                            controle_esquerda();
-                            controle_queda();
-                        }
-                    }
-                }
-                else if (direcao == CIMA)
-                {
-                    controle_queda();
-                    heroi.y -= 1;
-                    controle_queda();
-                    heroi.y += 1;
-                    controle_queda();
-                }
-
-                if (jogo.mapa[heroi.y + 1][heroi.x] != '=')
-                {
-                    heroi.y += 1;
-                }
-            }
-
+            if(fim_de_jogo)
+                controle_reiniciar();
             break;
 
         default:
@@ -378,26 +418,12 @@ void controle()
 void obstaculo()
 {
 
-    for (int j = 10; j < 30; j++)
+    for (int j = 0; j < LARGURA; j++)
     {
-        if (j > 20 && j < 30)
+        if (j > 10 && j < 15)
             jogo.mapa[ALTURA - 3][j] = '=';
     }
-    for (int j = 15; j < 35; j++)
-    {
-        if (j > 25 && j < 35)
-            jogo.mapa[ALTURA - 5][j] = '=';
-    }
-    for (int j = 20; j < 40; j++)
-    {
-        if (j > 30 && j < 40)
-            jogo.mapa[ALTURA - 7][j] = '=';
-    }
-    for (int j = 25; j < 45; j++)
-    {
-        if (j > 35 && j < 45)
-            jogo.mapa[ALTURA - 9][j] = '=';
-    }
+
 }
 
 void iniciar()
@@ -407,9 +433,9 @@ void iniciar()
     srand(time(NULL));
 
     construir_mapa();
-    // obstaculo();
+    obstaculo();
 
-    heroi.x = ALTURA / 2;
+    heroi.x = 1;
     heroi.y = ALTURA - 2;
     direcao = CIMA;
 
@@ -448,35 +474,53 @@ void iniciar()
 
 void gameplay()
 {
-    imprimir_mapa();
-    delay();
-
-    if (kbhit())
+    while (!fim_de_jogo)
     {
-        comando = getch();
-        apagar_player();
-        controle();
-    }
-    else
-        direcao = CIMA;
+        cont++;
+        imprimir_mapa();
+        delay();
 
-    if (jogo.mapa[heroi.y + 1][heroi.x] == ' '
-        && jogo.mapa[heroi.y + 1][heroi.x + 1] == ' '
-        && jogo.mapa[heroi.y + 1][heroi.x - 1] == ' ')
-    {
-        apagar_player();
-        heroi.y += 1;
-        controle_queda();
+        if (kbhit())
+        {
+            comando = getch();
+            apagar_player();
+            controle();
+        }
+        else
+            direcao = CIMA;
+
+        if (jogo.mapa[heroi.y + 1][heroi.x] == ' '
+            && jogo.mapa[heroi.y + 1][heroi.x + 1] == ' '
+            && jogo.mapa[heroi.y + 1][heroi.x - 1] == ' ')
+        {
+            apagar_player();
+            heroi.y += 1;
+            controle_queda();
+        }
+        controle_corda();
+
+        fim_de_jogo =heroi.y>ALTURA-2;
     }
-    controle_corda();
+}
+
+void game_over()
+{
+    posicao_tela(1, ALTURA/2);
+    printf("                        FIM DE JOGO! \n\n\n\n\n");
+
+    comando = getch();
+    controle();
 }
 
 void main()
 {
     iniciar();
-
-    for (;;cont++)
+    while(vida>0)
     {
         gameplay();
+
+        iniciar();
+        game_over();
     }
+
 }
