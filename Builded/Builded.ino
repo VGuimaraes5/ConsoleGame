@@ -6,7 +6,7 @@
 #define disparo 5
 
 int lMaxima, aMaxima;
-int pontos = 0;
+int pontos = 3;
 
 
 
@@ -89,6 +89,9 @@ class Posicao
 class Nave: public Posicao
 {
   public:
+    int jumping = 0;
+    int jumpFrame = 0;
+     
     void begin(int x, int y)
     {
       posX = x;
@@ -97,13 +100,12 @@ class Nave: public Posicao
 
     void desenhaNave()
     {
-      tv.println(posX + 4, posY - 10, "A");
-      tv.draw_rect(posX, posY, 10, 10, WHITE, WHITE);
-      tv.draw_rect(posX + 3, posY - 5, 4, 4, WHITE, WHITE);
-
-      tv.println(posX - 5, posY + 5, "A");
-      tv.println(posX + 13, posY + 5, "A");
-      tv.draw_rect(posX - 5, posY + 5, 20, 3, WHITE, WHITE);
+      tv.println(posX, posY - 10, "A");
+      tv.draw_rect(posX - 3, posY - 5, 2, 4, WHITE, WHITE);
+      tv.draw_rect(posX + 3, posY - 5, 2, 4, WHITE, WHITE);
+      tv.draw_rect(posX - 1, posY - 6, 2, 7, WHITE, WHITE);
+      tv.draw_rect(posX - 2, posY, 1, 4, WHITE, WHITE);
+      tv.draw_rect(posX + 2, posY, 1, 4, WHITE, WHITE);
      }
    
     void moverNaveDireita() 
@@ -118,16 +120,31 @@ class Nave: public Posicao
     void moverNaveEsquerda()
     {
       //GARANTE QUE A NAVE NÃO SAIA DO CAMPO E A MOVIMENTA PARA A ESQUERDA
-      if (posX > 5)
+      if (posX > 16)
       {
         posX -= 1;
       }
+    }
+
+    void pula () 
+    {
+       
+       if (jumpFrame < 8 && jumping) {
+          jumpFrame++;
+          posY -= 2;
+       } else if (jumpFrame < 16 && jumping){
+          jumpFrame++;
+          posY += 2;
+       } else {
+         jumping = 0;
+         jumpFrame = 0;
+       }
     }
 };
 Nave nave;
 
 
-class Missil:public Posicao
+/* class Missil:public Posicao
 {
   public:
   boolean estado;
@@ -147,35 +164,34 @@ class Missil:public Posicao
     }
   }
 };
-Missil missil;
+Missil missil; */
 
 class Asteroid:public Posicao
 {
   public:
   boolean estado;
-  int posicaoInicial;
-  void desenhaAsteroid(){
-    if(this->estado && this->posY < aMaxima )
+  int posicaoInicial = lMaxima;
+  
+  void desenhaAsteroid()
+  {
+    if(this->estado && this->posX > 10 )
     {
-       tv.draw_rect(posX, posY, 8, 14, WHITE, WHITE);
-       tv.draw_rect(posX-2, posY+3, 12, 8, WHITE, WHITE);
-       this->posY +=1;
+       tv.println(posX, posY, "*");
+       this->posX--;
     }
     else
     {
-      this->posicaoInicial = random(6, lMaxima-13);
       this->posX = posicaoInicial;
-      this->posY = 2;
+      this->posY = 75;
       this->estado = 1;
     }
 
-    //VERIFICA SE O MISSIL ATINGIU O ASTEROID
-    if(missil.posY < this->posY+3 && missil.posY > this->posY-3 && missil.posX > this->posX-7 && missil.posX < this->posX+10 && missil.estado == 1)
+    //VERIFICA SE A NAVE ATINGIU O ASTEROID
+    if(nave.posY > 70 && this->posX == nave.posX)
     {
         this->estado = 0;
-        missil.estado = 0;
-        pontos +=1;
-     }
+        pontos --;
+    }
     
   }
 };
@@ -236,7 +252,7 @@ void setup()
   Serial.begin(9600);
 
   //POSICIONA A NAVE NO CENTRO INFERIOR DO CAMPO
-   nave.begin(50, 75);
+   nave.begin(20, 75);
  
 
 
@@ -261,22 +277,21 @@ void loop()
   placar();
   campolimpo();
   nave.desenhaNave();
-  missil.desenhaMissil();
+  nave.pula();
  
 
-  if (pontos == 30)
+  if (pontos == 0)
   {
-      tv.println(30, 60, "VOCE VENCEU!!!");
+      tv.println(30, 60, "VOCE PERDEU!!!");
       tv.println(10, 30, "FATEC - AMERICANA");
       tv.delay(5000);
-  
   }
    
 
   asteroid.desenhaAsteroid();
   if (digitalRead(direita) == LOW) nave.moverNaveDireita();
   if (digitalRead(esquerda) == LOW) nave.moverNaveEsquerda();
-  if(digitalRead(disparo) == LOW) missil.estado = 1;
+  if (digitalRead(disparo) == LOW) nave.jumping = 1;
   delay(25);
  
 }

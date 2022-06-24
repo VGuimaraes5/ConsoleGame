@@ -20,7 +20,7 @@ enum sentido
 enum tamanhos
 {
     ALTURA = 26,
-    LARGURA = 26,
+    LARGURA = 64,
     ALTURA_CORDA = 18
 };
 
