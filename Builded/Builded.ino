@@ -143,56 +143,34 @@ class Nave: public Posicao
 };
 Nave nave;
 
-
-/* class Missil:public Posicao
-{
-  public:
-  boolean estado;
-  void desenhaMissil()
-  {
-    //VERIFICA SE O MISSIL ESTA ATIVO E SE ELE STA DENTRO DO CAMPO
-    if(this->estado && this->posY > 3)
-    {
-      this->posY -=3;
-      tv.println(posX, posY, "*");
-    }
-    else
-    {
-      this->estado = 0;
-      this->posX = nave.posX+4;
-      this->posY = nave.posY;
-    }
-  }
-};
-Missil missil; */
-
 class Asteroid:public Posicao
 {
   public:
-  boolean estado;
-  int posicaoInicial = lMaxima;
-  
+  int estado = 0;
+  int posicaoInicial;
+
+  void begin(int x, int y)
+  {
+    posicaoInicial = x;
+    posX = x;
+    posY = y;
+  }
+
   void desenhaAsteroid()
   {
-    if(this->estado && this->posX > 10 )
-    {
-       tv.println(posX, posY, "*");
-       this->posX--;
-    }
-    else
-    {
-      this->posX = posicaoInicial;
-      this->posY = 75;
-      this->estado = 1;
+    if(estado == 0 || posX < 10) {
+      estado = 1;
+      posX = posicaoInicial;
+    } else {
+      tv.println(posX, posY, "*");
+      posX -= 1;
     }
 
     //VERIFICA SE A NAVE ATINGIU O ASTEROID
-    if(nave.posY > 70 && this->posX == nave.posX)
-    {
-        this->estado = 0;
-        pontos --;
+    if(nave.posY >= 73 && posX == nave.posX) {
+      estado = 0;
+      pontos -= 1;
     }
-    
   }
 };
 Asteroid asteroid;
@@ -229,14 +207,11 @@ void campolimpo()
   tv.draw_rect(200, 50 - pontos, 2, pontos, WHITE);  
 }
 
-
 void placar()
 {
   tv.select_font(font4x6);
   tv.println(2, 2, pontos);
 }
-
-
 
 void setup() 
 {
@@ -252,8 +227,8 @@ void setup()
   Serial.begin(9600);
 
   //POSICIONA A NAVE NO CENTRO INFERIOR DO CAMPO
-   nave.begin(20, 75);
- 
+  nave.begin(20, 75);
+  asteroid.begin(100, 77);
 
 
   tv.select_font(font4x6);
